@@ -1,0 +1,6 @@
+# Large, regenerable data artifacts — rebuild with fetch_ftd.sh + build_parquet.py
+raw/
+extracted/
+parquet/
+*.zip
+*.txt
