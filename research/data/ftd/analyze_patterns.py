@@ -61,28 +61,37 @@ out['null_z_decile'] = [{'d': x[0], 'median': x[1], 'n': x[2]} for x in d.execut
 # Chronic-Fail Decay: price-band gradient (chronic vs fresh), 2wk
 out['price_gradient'] = []
 for lo, hi in [(0.5,1),(1,2),(2,3),(3,5),(5,10),(10,20)]:
-    rows = {x[0]: x for x in d.execute(f"""SELECT CASE WHEN p180>=11 THEN 1 WHEN p180<=7 THEN 0 END c, median(r_np), count(*)
-      FROM panel WHERE is_etf=0 AND price>={lo} AND price<{hi} AND (p180>=11 OR p180<=7) AND r_np IS NOT NULL GROUP BY c""").fetchall()}
+    rows = {x[0]: x for x in d.execute(f"""SELECT CASE WHEN p180>=80 THEN 1 WHEN p180<=20 THEN 0 END c, median(r_np), count(*)
+      FROM panel WHERE is_etf=0 AND price>={lo} AND price<{hi} AND (p180>=80 OR p180<=20) AND r_np IS NOT NULL GROUP BY c""").fetchall()}
     if 0 in rows and 1 in rows:
         out['price_gradient'].append({'band': f'${lo}-{hi}', 'chronic': rows[1][1], 'fresh': rows[0][1], 'n_chr': rows[1][2]})
 # By-year market-neutral spread
 out['year_spread'] = [{'y': x[0], 'spread': x[1], 'chr': x[2], 'fresh': x[3], 'n': x[4]} for x in d.execute("""
-  SELECT year(dt), median(CASE WHEN p180>=11 THEN r_np END)-median(CASE WHEN p180<=7 THEN r_np END),
-    median(CASE WHEN p180>=11 THEN r_np END), median(CASE WHEN p180<=7 THEN r_np END),
-    count(CASE WHEN p180>=11 AND r_np IS NOT NULL THEN 1 END)
+  SELECT year(dt), median(CASE WHEN p180>=80 THEN r_np END)-median(CASE WHEN p180<=20 THEN r_np END),
+    median(CASE WHEN p180>=80 THEN r_np END), median(CASE WHEN p180<=20 THEN r_np END),
+    count(CASE WHEN p180>=80 AND r_np IS NOT NULL THEN 1 END)
   FROM panel WHERE is_etf=0 AND price>=0.5 AND price<5 GROUP BY 1 ORDER BY 1""").fetchall()]
 # Distribution / tail of chronic low-price
 r = d.execute("""SELECT count(*),avg(r_np),median(r_np),
    quantile_cont(r_np,0.05),quantile_cont(r_np,0.25),quantile_cont(r_np,0.75),quantile_cont(r_np,0.95),
    avg(CASE WHEN r_np<0 THEN 1.0 ELSE 0 END),avg(CASE WHEN r_np>0.25 THEN 1.0 ELSE 0 END)
-  FROM panel WHERE is_etf=0 AND price>=0.5 AND price<5 AND p180>=11 AND r_np IS NOT NULL""").fetchone()
+  FROM panel WHERE is_etf=0 AND price>=0.5 AND price<5 AND p180>=80 AND r_np IS NOT NULL""").fetchone()
 out['dist'] = {'n': r[0], 'mean': r[1], 'median': r[2], 'p05': r[3], 'p25': r[4], 'p75': r[5], 'p95': r[6], 'pct_down': r[7], 'pct_squeeze': r[8]}
 # Lag-honest chronic vs fresh (low price)
-lr = {x[0]: x for x in d.execute("""SELECT CASE WHEN p180>=11 THEN 1 WHEN p180<=7 THEN 0 END c,
+lr = {x[0]: x for x in d.execute("""SELECT CASE WHEN p180>=80 THEN 1 WHEN p180<=20 THEN 0 END c,
    avg(greatest(-0.6,least(0.6,r_1m_lag))), median(r_1m_lag), avg(CASE WHEN r_1m_lag>0 THEN 1.0 ELSE 0 END), count(*)
-  FROM panel WHERE is_etf=0 AND price>=0.5 AND price<5 AND (p180>=11 OR p180<=7) AND r_1m_lag IS NOT NULL GROUP BY c""").fetchall()}
+  FROM panel WHERE is_etf=0 AND price>=0.5 AND price<5 AND (p180>=80 OR p180<=20) AND r_1m_lag IS NOT NULL GROUP BY c""").fetchall()}
 out['lag_honest'] = {'chronic': {'wm': lr[1][1], 'md': lr[1][2], 'hit': lr[1][3], 'n': lr[1][4]},
                      'fresh':   {'wm': lr[0][1], 'md': lr[0][2], 'hit': lr[0][3], 'n': lr[0][4]}}
+
+
+# Dose-response: fail-days in trailing 180d -> forward return (calibrated scale, 0..~126)
+out['dose_response'] = []
+for lo, hi, lab in [(0,21,'0-20'),(21,41,'21-40'),(41,61,'41-60'),(61,81,'61-80'),(81,101,'81-100'),(101,127,'101-126')]:
+    x = d.execute(f"""SELECT count(*), median(r_np), avg(CASE WHEN r_np<0 THEN 1.0 ELSE 0 END)
+      FROM panel WHERE is_etf=0 AND price>=0.5 AND price<5 AND p180>={lo} AND p180<{hi} AND r_np IS NOT NULL""").fetchone()
+    if x[0] > 300:
+        out['dose_response'].append({'bucket': lab, 'n': x[0], 'median': x[1], 'pct_down': x[2]})
 
 json.dump(out, open(f"{HERE}/empirical_results.json", 'w'), indent=1)
 print("wrote empirical_results.json")

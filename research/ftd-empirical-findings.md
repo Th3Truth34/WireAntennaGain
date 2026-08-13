@@ -1,103 +1,128 @@
 # FTD Empirical Findings: What the 27M-Row Panel Actually Says
 
-*A direct mining of the SEC fails-to-deliver archive ([data/ftd/](data/ftd/), 2004–2026) for tradable structure. The FTD file embeds a price on every row (prior-day close), so a per-name price series — and forward returns — can be built **from the data itself**, with no external feed. This is the empirical companion to the [FTD deep dive](ftd-deep-dive.md); it tests that report's hypotheses on the actual data. Research notes, not investment advice; not a backtest of a live system.*
+*A direct mining of the SEC fails-to-deliver archive ([data/ftd/](data/ftd/), 2004–2026) for tradable structure. The FTD file embeds a price on every row (prior-day close), so a per-name price series — and forward returns — can be built **from the data itself**, with no external feed. Empirical companion to the [FTD deep dive](ftd-deep-dive.md). Research notes, not investment advice; not a backtest of a live system.*
+
+> **Revision note.** An earlier version of this file defined "chronic" as ≥11 fail-days in 180 days and "fresh" as ≤7. That threshold was mis-calibrated: a continuously-failing name records up to ~126 fail-days per 180 calendar days (median across the panel is 59), so "≥11" was a low bar met by ~94% of observations, and "≤7" selected a rare oddball tail. All figures below use the calibrated definition — **chronic = ≥80 fail-days**, **occasional = ≤20** — which makes the effect roughly twice as large and adds a clean dose-response. Conclusions are strengthened, not reversed.
 
 ---
 
 ## Headline
 
-- **The obvious signals are empty.** Fail-*spike* size (z-score vs a name's own history), fail *collapses*, fresh *new-entry* fails, and short-run persistence carry **no tradable cross-sectional edge** in liquid names (price ≥ \$5) — every decile returns ~+0.1%/2wk, flat. This empirically confirms the deep dive's skeptic case: the "fail spike → move" story is not in the data.
-- **One robust, novel pattern survives: _Chronic-Fail Decay_.** Cheap stocks that fail on essentially *every* SEC print for 6+ months (chronic) subsequently **bleed** — and the penalty is cleanly **monotonic in price** and stable across **13 of 17 years**. Fresh/occasional failers at the same prices do not. Because it is a *chronic* (slow-moving) state, it survives the ~1-month publication lag that kills the fast signals.
-- **But it's a short-tail minefield, not a free short.** The chronic cohort is down 53.9% of the time (median -1.08%), yet its *mean* is +1.56% because ~4.0% of observations squeeze >+25% (p95 = +21.8%). Equal-weight shorting therefore **loses on the mean**. It is a strong **avoid / do-not-own filter**, and only a *defined-risk* short (puts) can harvest the negative median without being run over by squeezes.
+- **The obvious signals are empty.** Fail-*spike* size (z-score vs a name's own history), fail *collapses*, *new-entry* fails, and ETF fail spikes carry **no cross-sectional edge** in liquid names — every decile ≈ +0.1%/2wk. The "fail spike → squeeze" thesis is not in the data.
+- **One robust pattern survives: _Chronic-Fail Decay_.** Cheap stocks that fail on *most trading days* for 6+ months subsequently bleed. The penalty is **monotonic in price** (-3.03% under \$1 → ~0 by \$10), shows a **monotonic dose-response** in fail-days, holds **16 of 17 years**, and — critically — **survives a within-name test** (-1.19% for the same name in chronic vs occasional spells; 60.6% of names worse when chronic).
+- **But the tradeable edge is much thinner than the statistical one.** Gross annualized short gain is only **41%–55%** in the cheap bands — squarely inside the borrow-fee range for hard-to-borrow names. And the cohort's *mean* is -0.47% despite a -1.80% median, because 2.5% of observations squeeze >+25%. Equal-weight shorting **loses on the mean**.
 
 ---
 
 ## Method
 
-- **Universe / period:** every FTD row 2010–2026 with a positive price and positive fails (~21.9M observations after filtering; price is populated from 2007). ETFs flagged by description keywords and analyzed separately.
-- **Forward returns from embedded prices:** for each (symbol, settlement date) the next same-symbol price on the file gives a return. `r_np` = next print (~2 weeks); `r_1m_lag` = **lag-honest** entry ~1 month *after* the signal (i.e., after the print would actually be public), held ~1 month. Date-gap guards reject returns computed across long absences.
-- **Signal:** `z` = (ln fails − trailing mean ln fails) / trailing sd, over a name's prior 8 prints. `chronic` = on the file ≥11 of the last ~13 prints (trailing 180 days); `fresh` = ≤7.
-- **Robustness:** returns winsorized to ±50–60% for means; **median and hit-rate** are the primary statistics because raw means are dominated by micro-cap tails.
-- **Known selection bias (stated plainly):** a forward return only exists when a name is *still on the file* later, so results condition on persistence. The `fresh`-vs-`chronic` comparison and the market-neutral spread are designed to difference this out.
+- **Universe / period:** every FTD row 2010–2026 with positive price and fails (~21.9M observations). ETFs flagged by description keywords and analyzed separately.
+- **Forward returns from embedded prices:** the next same-symbol price on the file gives `r_np` (~2 weeks). `r_1m_lag` enters ~1 month *after* the signal — i.e. only after the print is actually public — and holds ~1 month. Date-gap guards reject returns spanning long absences.
+- **Chronic definition (calibrated):** `p180` = count of settlement dates the symbol appears on in the trailing 180 days (range 0–126, median 59). **chronic = p180 ≥ 80**; **occasional = p180 ≤ 20**.
+- **Statistics:** median and hit-rate are primary; raw means are dominated by micro-cap tails and reported separately precisely because that gap is the trade-defining fact.
+- **Known selection bias:** a forward return exists only if the name is still on the file later. The occasional-vs-chronic contrast, the market-neutral spread, and especially the **within-name test** are designed to difference this out.
 
 ---
 
-## 1. What does NOT work (the honest nulls)
+## 1. What does NOT work
 
 | Signal | Test | Result |
 |---|---|---|
-| Baseline (on the file at all) | median 2wk return, price ≥ \$1 | +0.07%, hit 50.7% — flat |
-| **Fail-spike z-score** | decile spread, liquid single names | D10−D1 median ≈ +0.01%/2wk — **no edge**, non-monotonic |
-| **Fail collapse** (>80% drop) | event vs baseline | +0.02% to +0.07% — negligible |
-| **New-entry** (>75d absent) | event vs baseline | +0.55% naive 2wk, but **reverses** after the lag (−0.13% median) |
-| **Short-run persistence** | run length → return | no usable gradient |
+| Baseline (on the file at all) | median 2wk, price ≥ \$1 | +0.07%, hit 50.7% — flat |
+| **Fail-spike z-score** | decile spread, liquid names | D10−D1 ≈ +0.01%/2wk — **no edge**, non-monotonic |
+| **Fail collapse** (>80% drop) | event vs baseline | negligible |
+| **New-entry** (>75d absent) | event vs baseline | small pop that **reverses** after the lag |
 | **ETF fail spikes** | decile spread | flat — ETF fails are structurally benign |
 
-The takeaway is decision-relevant: **do not trade raw fail levels or spikes in liquid names.** Anyone selling an "FTD spike alert" as an entry signal is selling noise.
+**Do not trade raw fail levels or spikes.** Anyone selling an "FTD spike alert" as an entry signal is selling noise.
 
-## 2. Chronic-Fail Decay (the pattern that survives)
+## 2. Chronic-Fail Decay
 
-**The effect is monotonic in price** — cheaper chronic failers bleed harder, while *fresh* failers at the same price are flat (2-week median forward return):
+**Monotonic in price** (median forward 2-week return):
 
-| Price band | Chronic (≥11/13 prints) | Fresh (≤7/13) | Chronic − Fresh | N (chronic) |
+| Price band | Chronic (≥80 fail-days) | Occasional (≤20) | Difference | N |
 |---|---|---|---|---|
-| $0.5-1 | -1.92% | +0.00% | **-1.92%** | 56,528 |
-| $1-2 | -1.35% | +0.00% | **-1.35%** | 76,473 |
-| $2-3 | -0.95% | +0.00% | **-0.95%** | 51,922 |
-| $3-5 | -0.46% | +0.00% | **-0.46%** | 79,911 |
-| $5-10 | +0.00% | +0.10% | **-0.10%** | 168,380 |
-| $10-20 | +0.10% | +0.10% | **-0.00%** | 285,518 |
+| $0.5-1 | -3.03% | +0.00% | **-3.03%** | 5,004 |
+| $1-2 | -1.98% | +0.00% | **-1.98%** | 6,859 |
+| $2-3 | -1.72% | +0.00% | **-1.72%** | 4,618 |
+| $3-5 | -1.11% | +0.00% | **-1.11%** | 6,722 |
+| $5-10 | -0.30% | +0.10% | **-0.40%** | 13,298 |
+| $10-20 | +0.00% | +0.19% | **-0.19%** | 25,785 |
 
-A clean monotonic gradient that vanishes by ~\$5 is hard to produce by chance and is exactly what a *borrow-cost-drag / hard-to-borrow-overvaluation* mechanism predicts: the names that fail on every print are the ones that are persistently expensive-to-borrow, heavily and informedly shorted, and often promoted micro-caps whose overvaluation slowly reverts.
+**Monotonic dose-response** — more fail-days, worse returns (price \$0.5–5). This is the strongest evidence against coincidence:
 
-**It is stable across 16 years.** Market-neutral chronic-minus-fresh median spread (differences out the low-price factor), negative in **13/17** years and strengthening lately:
+| Fail-days in 180d | Median 2wk | % down | N |
+|---|---|---|---|
+| 0-20 | +0.00% | 48.9% | 53,831 |
+| 21-40 | -0.70% | 52.1% | 82,017 |
+| 41-60 | -1.23% | 54.8% | 79,389 |
+| 61-80 | -1.56% | 56.6% | 49,609 |
+| 81-100 | -1.80% | 58.3% | 18,442 |
+| 101-126 | -1.82% | 58.0% | 3,113 |
 
-| Year | Chronic | Fresh | Spread | N |
+**Survives a within-name test.** Restricting to the 401 names that experience *both* regimes and comparing each name to itself: median within-name difference **-1.19%**, with **60.6%** of names worse during their chronic spells (50% = no effect). This is the key result against "it's just which names become chronic."
+
+**Stable across time.** Market-neutral chronic-minus-occasional median spread, negative in **16/17** years:
+
+| Year | Chronic | Occasional | Spread | N |
 |---|---|---|---|---|
-| 2010 | +0.00% | +0.00% | +0.00% | 15,322 |
-| 2011 | -0.99% | +0.00% | -0.99% | 15,958 |
-| 2012 | +0.00% | +0.00% | +0.00% | 14,811 |
-| 2013 | +0.00% | +0.00% | +0.00% | 12,926 |
-| 2014 | -0.75% | +0.00% | -0.75% | 12,523 |
-| 2015 | -1.28% | +0.00% | -1.28% | 13,455 |
-| 2016 | +0.00% | +0.76% | -0.76% | 14,571 |
-| 2017 | -0.45% | +0.00% | -0.45% | 13,231 |
-| 2018 | -1.49% | -1.31% | -0.18% | 13,393 |
-| 2019 | -0.80% | -0.23% | -0.57% | 14,913 |
-| 2020 | +0.00% | +0.88% | -0.88% | 11,221 |
-| 2021 | -1.61% | -0.41% | -1.20% | 18,596 |
-| 2022 | -2.77% | -3.15% | +0.39% | 20,350 |
-| 2023 | -1.79% | -1.01% | -0.78% | 20,785 |
-| 2024 | -1.75% | -0.35% | -1.41% | 21,353 |
-| 2025 | -1.55% | +0.00% | -1.55% | 21,190 |
-| 2026 | -2.10% | -0.10% | -2.00% | 10,236 |
+| 2010 | +0.00% | +0.00% | +0.00% | 1,168 |
+| 2011 | -1.37% | +0.00% | -1.37% | 2,235 |
+| 2012 | -0.65% | +0.00% | -0.65% | 1,931 |
+| 2013 | -0.78% | +0.00% | -0.78% | 1,871 |
+| 2014 | -1.48% | +0.00% | -1.48% | 1,568 |
+| 2015 | -1.78% | +0.00% | -1.78% | 1,286 |
+| 2016 | -1.01% | +0.00% | -1.01% | 1,360 |
+| 2017 | -1.11% | +0.00% | -1.11% | 859 |
+| 2018 | -1.95% | -0.97% | -0.97% | 991 |
+| 2019 | -1.81% | +0.00% | -1.81% | 1,192 |
+| 2020 | -1.05% | +0.91% | -1.97% | 357 |
+| 2021 | -3.27% | -0.81% | -2.47% | 1,533 |
+| 2022 | -4.02% | -2.55% | -1.47% | 2,052 |
+| 2023 | -2.52% | -1.50% | -1.02% | 1,700 |
+| 2024 | -3.53% | -0.68% | -2.85% | 1,251 |
+| 2025 | -3.88% | +0.00% | -3.88% | 1,288 |
+| 2026 | -4.55% | -0.50% | -4.05% | 561 |
 
-**Lag-honest (enter ~1 month after the signal is public):** chronic median -0.21% (hit 45.0%) vs fresh +0.00% (hit 48.3%). The edge weakens with the lag but does not disappear — because chronic status is sticky.
+**Lag-honest** (enter ~1 month after the print is public): chronic median -1.79% vs occasional +0.00%. Weaker but intact — chronic status is sticky, which is exactly why this signal survives a lag that kills spike signals.
 
-**The distribution is the catch** (chronic low-price, 2wk):
+**It is not confined to untradeable dust.** Splitting by fail notional, the effect is essentially flat across size buckets:
 
-| stat | value |
-|---|---|
-| observations | 264,834 |
-| % down | 53.9% |
-| median | -1.08% |
-| mean | +1.56% (tail-dragged **positive**) |
-| p05 / p25 / p75 / p95 | -21.6% / -7.3% / +4.7% / +21.8% |
-| % squeezing >+25% | 3.96% |
+| Fail notional | Median 2wk | % down | N |
+|---|---|---|---|
+| <$10k | -1.82% | 58.4% | 17,459 |
+| $10-100k | -1.75% | 58.0% | 4,837 |
+| $100k-1M | -1.79% | 58.3% | 834 |
 
-## 3. How to (and how not to) express it
+## 3. Is there a *tradeable* edge? The cost hurdle
 
-- **As a filter (strong, usable now):** *do not go long* a cheap stock that is a chronic FTD failer. It is down ~54% of two-week windows with a negative median, every price band under \$5, almost every year. This is the highest-confidence use.
-- **As a short (hard):** the ~4% squeeze tail (p95 +21.8%) means a naive equal-weight short **loses on the mean** even though the median is negative. Only a **defined-risk** expression — long puts / put spreads where optionable, sized as a diversified basket — can harvest the negative median while capping the squeeze. And these names are hard/expensive to borrow *by construction* (that's why they fail), so the borrow fee must be beaten.
-- **Horizon:** shorter is safer (the squeeze tail grows with holding time); the 2-week print-to-print cadence is the natural rebalance.
+Converting the median 2-week decline into an annualized gross short gain gives the **borrow fee at which the edge disappears**:
 
-## 4. Limitations
+| Price band | Median 2wk | Breakeven annualized borrow fee |
+|---|---|---|
+| $0.5-1 | -3.03% | **55%** |
+| $1-2 | -1.98% | **41%** |
+| $2-3 | -1.72% | **36%** |
+| $3-5 | -1.11% | **25%** |
+| $5-10 | -0.30% | **8%** |
 
-- **Selection/persistence bias:** forward returns exist only for names that stay on the file; the fresh-vs-chronic and market-neutral spreads mitigate but do not fully eliminate this.
-- **Micro-cap reality:** the tradeable-looking edge lives in \$0.5–\$5 names — thin, halt-prone, hard-to-borrow, and manipulation-prone. Frictions (borrow fees, spreads, impact) are large and not modeled here.
-- **Prices are prior-day closes** embedded in the file, not intraday marks; returns are approximate.
-- **This is not a backtest of a tradable system** — no transaction costs, borrow fees, or capacity. It identifies a statistical pattern and characterizes its risk honestly.
+This is the crux. Hard-to-borrow micro-caps — which is precisely what these names are — routinely carry borrow fees in the tens of percent. **The gross edge and the cost of harvesting it are the same order of magnitude**, so whether a real net edge exists is an empirical question about each name's actual borrow fee on the day, not something this dataset can settle.
+
+**The distribution makes it worse for an outright short** (chronic, \$0.5–5, 2wk): N=23,203; 58.3% down; median -1.80%; **mean -0.47%**; p05 -20.8%, p95 +17.1%; 2.48% return >+25%.
+
+## 4. Honest conclusions
+
+1. **As a screening filter — high confidence, zero cost.** Do not go long a cheap stock that fails on most trading days. Negative median in every sub-\$5 band, 16/17 years, dose-responsive, survives within-name. Costs nothing to apply, so no friction can eat it.
+2. **As an outright short — probably not.** Breakeven borrow of 25–55% sits inside the actual fee range for these names, and the fat positive tail means equal-weight shorting loses on the mean.
+3. **As a defined-risk short — unresolved, and the only version worth testing.** Long puts / put spreads cap the squeeze tail, but these names carry very high implied volatility, so the option may already price the drift. Settling this requires options data (IV surfaces and realized-vs-implied comparisons) that is **not** in the FTD file.
+
+## 5. Limitations
+
+- **Persistence/selection bias:** returns exist only for names still on the file; ~half of chronic names stop printing within ~2 years. The within-name test mitigates but cannot fully eliminate this.
+- **Frictions unmodeled:** no borrow fees, spreads, impact, or taxes in the return figures above.
+- **Prices are prior-day closes** embedded in the file, not tradeable marks.
+- **Not a backtest of a live system.** It identifies a pattern, stress-tests it four ways, and states honestly where the tradeable edge is doubtful.
 
 ---
 
-*Reproduce: the panel and every figure here rebuild from `parquet/ftd_all.parquet` via the DuckDB queries used to produce `empirical_results.json`. Companion: [ftd-deep-dive.md](ftd-deep-dive.md), dataset [data/ftd/](data/ftd/).*
+*Reproduce: `python analyze_patterns.py` regenerates every figure from `parquet/ftd_all.parquet`. Companion: [ftd-deep-dive.md](ftd-deep-dive.md), dataset [data/ftd/](data/ftd/).*
