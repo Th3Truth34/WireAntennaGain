@@ -58,5 +58,55 @@
    "mean": 0.04849222318464203,
    "pct_squeeze": 0.03237410071942446
   }
- ]
+ ],
+ "horizon": [
+  {
+   "horizon": "2wk",
+   "days": 14,
+   "median": -0.0144,
+   "mean": 0.0004,
+   "pct_down": 0.543,
+   "n": 1011459
+  },
+  {
+   "horizon": "1mo",
+   "days": 30,
+   "median": -0.0299,
+   "mean": 0.0016,
+   "pct_down": 0.566,
+   "n": 999271
+  },
+  {
+   "horizon": "2mo",
+   "days": 60,
+   "median": -0.0531,
+   "mean": 0.0081,
+   "pct_down": 0.584,
+   "n": 980229
+  },
+  {
+   "horizon": "3mo",
+   "days": 91,
+   "median": -0.075,
+   "mean": 0.0151,
+   "pct_down": 0.594,
+   "n": 962620
+  },
+  {
+   "horizon": "6mo",
+   "days": 182,
+   "median": -0.128,
+   "mean": 0.038,
+   "pct_down": 0.611,
+   "n": 910700
+  }
+ ],
+ "verified_borrow_2026_08_12": {
+  "BYND": 0.3587,
+  "CGC": 0.123,
+  "FBIO": 0.0827,
+  "VUZI": 0.0298,
+  "SPCE": 0.0276,
+  "PLUG": 0.0052
+ }
 }
