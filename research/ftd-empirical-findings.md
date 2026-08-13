@@ -1,108 +1,102 @@
-# FTD Empirical Findings — RETRACTED: the signal was an artifact of my own filter
+# FTD Empirical Findings: a real pattern that is not money
 
-> ## ⚠️ Retraction
->
-> **An earlier version of this document reported a pattern called "Chronic-Fail Decay" — that cheap stocks
-> failing on most trading days subsequently decline. That finding is withdrawn. It was an artifact of a
-> selection bug in my analysis code, not a property of the market.**
->
-> The bug was caught by an adversarial referee agent that reproduced my headline cell exactly
-> (N=23,203, median −1.804%, mean −0.472%, 58.26% down) and then located its cause. I independently
-> verified the diagnosis and confirmed it in full. Details and corrected numbers below.
+*Mining the SEC fails-to-deliver archive ([data/ftd/](data/ftd/), 2004–2026, 27.5M rows) for tradable
+structure. This document went through two wrong versions before arriving here; both corrections are
+recorded below rather than hidden, because the errors are the most instructive part. Research notes,
+not investment advice.*
 
 ---
 
-## What went wrong
+## The finding, stated correctly
 
-The forward return was defined as:
+**Cheap stocks that fail to deliver on most trading days do subsequently decline. The pattern is real,
+persistent, and reproducible. It is also worth about three cents a share, which is smaller than the
+spread you must cross to capture it — so it is not a trade.**
 
-```sql
-CASE WHEN datediff('day', dt, d1) BETWEEN 7 AND 35 THEN p1/price - 1 END AS r_np
-```
+Measured on a calendar-matched ~17-day horizon (the honest way; see corrections below), for names with
+≥80 fail-days in the trailing 180 days:
 
-where `d1` is the next row for the same symbol. The intent was "return to the next semi-monthly print,
-about two weeks out." The SEC FTD file, however, has **one row per settlement date**, not one row per
-publication. A chronically-failing stock therefore appears on the file nearly every trading day.
-
-Gap to the next print, chronic cohort ($0.50–5, ≥80 fail-days in 180d, N=1,019,345):
-
-| Gap to next print | Rows | Share |
-|---|---|---|
-| 1 day | 646,198 | **63.4%** |
-| 2–3 days | 236,644 | 23.2% |
-| 4–6 days | 112,709 | 11.1% |
-| **7–35 days (the filter)** | **23,203** | **2.3%** |
-| 36+ days | 587 | 0.1% |
-
-Three separate failures follow:
-
-1. **The measurement ran on 2.3% of the cohort.** And not a random 2.3% — precisely those observations
-   where a name's daily fail streak *broke for 1–5 weeks and then resumed*. That conditions on a future
-   event (reappearing on the file), and reappearance is itself driven by renewed short pressure.
-2. **The control group was filtered differently.** Occasional names (≤20 fail-days) naturally have gaps
-   longer than a week, so **15.3%** of their rows survived the same filter versus **2.3%** of chronic rows.
-   The comparison was between two differently-selected populations — which is what manufactured the gap.
-3. **The horizon label was wrong.** For 63% of chronic rows the "next print" is the next *day*, so the
-   statistic I called a two-week return was mostly a one-day return.
-
-## Corrected results — the effect vanishes
-
-Using the actual next observation (gap 1–35 days, 99.9% of rows):
-
-| Cell | N | Median | Mean | % down |
+| Price band | Median % change | **Median $ change** | Median price | % implied by the cents |
 |---|---|---|---|---|
-| **As reported (7–35d filter)** | 23,203 | −1.804% | −0.47% | 58.3% |
-| **Corrected (1–35d, actual next print)** | 1,018,754 | **+0.000%** | +1.08% | **49.2%** |
+| $0.5–1 | −3.16% | **−$0.02** | $0.73 | −2.74% |
+| $1–2 | −1.97% | **−$0.03** | $1.44 | −2.08% |
+| $2–3 | −1.63% | **−$0.04** | $2.46 | −1.63% |
+| $3–5 | −1.00% | **−$0.04** | $3.92 | −1.02% |
+| $5–10 | −0.16% | −$0.01 | $7.35 | −0.14% |
+| $10–20 | +0.06% | +$0.01 | $14.60 | +0.07% |
 
-**Price gradient — gone.** Chronic vs occasional, corrected:
+The last column is the whole story. **The celebrated "monotone in price" gradient — which I presented as
+the flagship evidence that this was an economic effect rather than noise — is arithmetic.** It is a
+roughly constant few-cents drift divided by a shrinking denominator. Cents-over-price reproduces the
+observed percentages to within a few basis points in every band.
 
-| Price band | Chronic median | Occasional median | Difference | N |
-|---|---|---|---|---|
-| $0.5–1 | +0.000% | +0.000% | +0.000% | 174,723 |
-| $1–2 | +0.000% | +0.000% | +0.000% | 293,536 |
-| $2–3 | −0.348% | +0.000% | −0.348% | 219,865 |
-| $3–5 | +0.000% | +0.000% | +0.000% | 330,630 |
-| $5–10 | +0.000% | +0.000% | +0.000% | 636,088 |
+Under SEC Rule 612 the minimum quoting increment is **$0.01** for stocks at or above $1.00. A median
+move of two-to-four cents cannot be harvested across a spread whose *floor* is one cent and which in
+this universe realistically runs two-to-five cents.
 
-**Dose-response — gone.** Every bucket returns a median of exactly zero, and the down-rate never reaches
-50% (these names close *up* slightly more often than down at every dose level):
+## Why it is not tradeable — five independent reasons
 
-| Fail-days in 180d | N | Median | % down |
-|---|---|---|---|
-| 0–20 | 332,005 | +0.000% | 42.8% |
-| 21–40 | 496,114 | +0.000% | 46.3% |
-| 41–60 | 668,135 | +0.000% | 48.2% |
-| 61–80 | 710,921 | +0.000% | 49.4% |
-| 81–100 | 591,646 | +0.000% | 49.7% |
-| 101–126 | 393,392 | +0.000% | 48.5% |
+1. **The edge lives inside the tick.** Two-to-four cents of median drift against a one-cent minimum
+   spread, before commissions (IB charges per *share*, catastrophic on penny-priced stock), slippage,
+   and borrow.
+2. **The portfolio-level mean is the wrong sign.** A book earns the cross-sectional mean each period and
+   compounds those periods — not the pooled median. Aggregating per settlement date (3,887 periods,
+   returns trimmed at 3× to be generous to the short): mean cross-sectional return **+0.139%**, so an
+   equal-weight short **loses 0.139% per period gross**, with longs gaining in 50.0% of periods.
+3. **N is inflated by roughly two orders of magnitude.** The file has one row per settlement date and a
+   chronic failer appears nearly daily, so the ~1M "observations" are ~168 overlapping daily rows across
+   only ~6,000 distinct symbols, spawning forward windows that overlap almost completely. De-overlapped,
+   this is roughly 187 independent periods. Every implied t-statistic in the earlier drafts was fiction.
+4. **The expectancy's sign is not identifiable from this data.** The FTD price column is an *unadjusted*
+   prior-day close. Sub-$5 chronic failers reverse-split constantly — that is much of what a chronic
+   failer *is* — and an unadjusted 1-for-10 reverse split reads as +900%. Max observed 2-week "return"
+   is +899,900%. The mean's sign flips on a trimming parameter touching under 0.6% of observations.
+5. **The mechanism is self-refuting.** The proposed cause is Miller (1977) overvaluation under *binding*
+   short-sale constraints. But verified IB borrow rates (2026-08-12) show the tradeable names are not
+   constrained — PLUG 0.52%/yr, SPCE 2.76%, VUZI 2.98% — so Miller predicts no overvaluation there.
+   Where the constraint genuinely binds, the fee eats the edge: BYND 35.87%/yr, CGC 12.30%. The names
+   sort by borrow cost, and **the lender collects the spread, not the shorter.**
 
-The within-name test, the year-by-year spread, and the notional split were all computed on the same
-contaminated `r_np` and are withdrawn along with the headline.
+## Two corrections, recorded
 
-## A second, independent problem with this dataset
+### Correction 1 — the original measurement was a selection artifact
 
-Even with the filter fixed, **the mean is not sign-identifiable from this data.** The FTD file's price
-column is an *unadjusted* prior-day close. Sub-$5 chronic failers reverse-split constantly, and an
-unadjusted 1-for-10 reverse split reads as a +900% return. The extreme right tail (q0.999 = +615%,
-max = +899,900%) is an inseparable mix of genuine squeezes — catastrophic for a short — and reverse
-splits, which are neutral for a short who is adjusted. The referee showed the sign of the mean flips
-on arbitrary trimming choices affecting under 0.6% of observations:
+Forward return was defined as `datediff('day', dt, d1) BETWEEN 7 AND 35`, where `d1` is the next row for
+the symbol. But the file has one row per *settlement date*, not per publication, so chronic failers
+appear nearly every trading day:
 
-| Trim forward ratios above | Resulting mean | Short earns |
-|---|---|---|
-| 1.8× | −1.02% | +1.02% |
-| 3× | −0.61% | +0.61% |
-| 5× | −0.34% | +0.34% |
-| 10× | +0.19% | −0.19% (loses) |
-| 25× | +0.83% | −0.83% (loses) |
+| Gap to next print (chronic) | Share |
+|---|---|
+| 1 day | 63.4% |
+| 2–3 days | 23.2% |
+| 4–6 days | 11.1% |
+| **7–35 days (the filter)** | **2.3%** |
 
-**Any strategy whose expectancy flips sign on a trimming parameter is not a strategy.** Settling this
-requires split-adjusted prices from a real market-data source; the FTD file alone cannot do it.
+So the headline ran on 2.3% of the cohort — and not a random 2.3%, but exactly those cases where a daily
+fail streak *broke for 1–5 weeks and then resumed*, conditioning on a future event. Meanwhile 15.3% of
+the control group survived the same filter, so the comparison was between two differently-selected
+populations.
 
-## What still stands
+### Correction 2 — the retraction was also wrong
 
-The **null results** are unaffected — they were computed on liquid names (price ≥ $5) where the gap
-filter is far less distorting, and they all say the same thing:
+The first correction replaced the filter with "the actual next print (gap 1–35 days)" and reported that
+the effect vanished (median +0.000%, 49.2% down), and I retracted the finding outright. **That was also
+an error, in the opposite direction:** for chronic names the actual next print is usually the *next day*,
+so this measured one-day returns, and a one-day median on a sub-$5 stock is exactly $0.00 by tick
+quantization. Both the "effect" and its "disappearance" were measurement artifacts.
+
+The correct approach is a **calendar-matched horizon** — take the price nearest to ~17 days later within
+a 10–24 day window — which is what the table at the top uses. On that basis the pattern reproduces
+robustly, which is why the honest verdict is "real but not money" rather than either earlier answer.
+
+A related trap, for completeness: the control group's "flat 0.00% in every band" was never a finding
+either. The fresh cohort's median 2-week move is exactly $0.00 — tick quantization again — and its
+forward price is available for only 71.7% of observations versus 98.9% for the chronic cohort, so the
+control is itself contaminated toward the treatment.
+
+## What still stands unchanged
+
+The **null results** are unaffected, and they were right all along:
 
 | Signal | Result |
 |---|---|
@@ -110,32 +104,41 @@ filter is far less distorting, and they all say the same thing:
 | Fail collapse (>80% drop) | negligible |
 | New-entry fails | small pop, reverses after the publication lag |
 | ETF fail spikes | flat — ETF fails are structurally benign |
-| Baseline (on the file at all) | flat |
 
-So the conclusion of this study is now entirely negative, and stronger for it:
+## The one surviving use
 
-**Across 27.5 million rows spanning 2004–2026, I found no tradable signal in the SEC fails-to-deliver
-data. The one apparent discovery was a bug in my own measurement.**
+**A do-not-own screen**, which survived every referee and drew no red-team attack — because it is not a
+trade and therefore has nothing to attack. Declining to own something is free: no borrow, no squeeze
+exposure, no Rule 4210 margin charge, no buy-in risk, no fee paid to a lender, no unbounded left tail.
+The two-to-four cent drift that cannot be harvested through a spread is perfectly real if you are simply
+choosing *not* to buy. Present it as a risk control, never as alpha.
 
-That is consistent with the independent verdicts from the strategy referees: all twelve FTD-derived
-candidate strategies were graded NO-EDGE or LIKELY-ILLUSORY, and the specific mechanism they identified —
-that FTD status is a stale, low-resolution proxy for borrow fee and short interest, both of which are
-observable live and already priced by the securities-lending market — predicts exactly the null found here.
+## The test that would settle it properly
 
-## Lessons worth keeping
+A pooled cross-sectional regression of forward returns on chronic-FTD status **alongside** live borrow
+fee, short interest as a percentage of float, price level, log market cap, share-count growth, and
+momentum — with standard errors double-clustered by date and by name, on split-adjusted prices.
 
-1. **A filter that interacts with the treatment variable is a selection experiment.** My gap filter was
-   correlated with chronic status by construction, which is precisely what produced the fake effect.
-2. **Check what fraction of your data survives each filter, per group.** 2.3% versus 15.3% would have
-   flagged this instantly.
-3. **Verify the horizon your return actually spans**, rather than assuming it from the intended design.
-4. **Unadjusted prices cannot support tail-sensitive statistics.** Means, Sharpe ratios, and anything
-   else driven by extremes need split-adjusted data.
-5. **Adversarial review earned its cost here.** The referee agent reproduced the number, then found the
-   cause — which is exactly what the verification stage is for.
+If chronic-FTD's marginal t-statistic falls below 2 after those controls, the signal is a redundant
+lagged proxy for the borrow fee and the file is closed. That is one afternoon of work and it is the
+correct next step for anyone tempted by this line of inquiry.
+
+## Lessons
+
+1. **A filter that interacts with your treatment variable is a selection experiment.** Check what
+   fraction of each group survives every filter — 2.3% versus 15.3% would have flagged this instantly.
+2. **Verify the horizon your return actually spans.** Both errors here were horizon errors.
+3. **Measure the effect in dollars, not just percent.** Doing so immediately exposed that a "monotone
+   economic gradient" was a constant cents drift over a shrinking price.
+4. **Compare the edge to the minimum tick before anything else.** It is the cheapest possible sanity check.
+5. **A portfolio earns the cross-sectional mean per period, not the pooled median.** Aggregate the way
+   the book actually compounds.
+6. **Overlapping windows are not independent observations.** De-overlap before believing any t-statistic.
+7. **Unadjusted prices cannot support tail-sensitive statistics.**
+8. **Adversarial review paid for itself twice** — once to find the original bug, once to catch the
+   over-correction in the retraction.
 
 ---
 
-*Reproduce: `python analyze_patterns.py` (note: the `r_np` definition retains the documented bug for
-reproducibility of the retraction; corrected figures come from `corrected_results.json`).
-Dataset: [data/ftd/](data/ftd/). Companion: [ftd-deep-dive.md](ftd-deep-dive.md).*
+*Dataset and tooling: [data/ftd/](data/ftd/). Referee and red-team transcripts: [data/referee/](data/referee/).
+Companion: [ftd-deep-dive.md](ftd-deep-dive.md).*
