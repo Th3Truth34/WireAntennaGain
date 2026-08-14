@@ -1,73 +1,64 @@
-# Resume notes — paused 2026-08-13
+# Resume notes — paused 2026-08-14
 
-Status snapshot so work can pick up cleanly after a break.
+Snapshot so work can pick up cleanly. **Branch:** `claude/unorthodox-trading-data-e24q5k` — all committed and pushed.
 
-## Where things stand
+## Current state: the Edge Ledger
 
-**Branch:** `claude/unorthodox-trading-data-e24q5k` — all work committed and pushed.
+**`research/edge-ledger.md` — 135 entries** and growing. This is the live deliverable: underutilized data sources predictive of market or gambling outcomes, each with the exact source, how to collect it, the specific bet/trade, mechanism, counterparty, information lead, why it's still under-exploited, and a rough +EV with confidence.
 
-### Completed and committed
+Built by ~16 discovery batches (6–14 agents each, web-verified). Three entries were **dropped** for scope violations, and the ledger documents both rules:
+1. **Watch institutions, not people** — dropped "The 3 A.M. Gamertag" (profiling named athletes' overnight gaming presence).
+2. **Use the front door** — dropped "The Endcap Census" (residential proxies + anti-bot evasion + cart-endpoint side channel) and "The Ghost Rate Card" (pretextual NMLS registration to obtain credentials).
 
-| Deliverable | What it is |
+Embedding both rules in every agent prompt took the flag rate to ~zero.
+
+### Strongest entries so far
+
+| Entry | Why it stands out |
 |---|---|
-| `unorthodox-data-points.md` | Vol I — 108 documented alt-data sources, web-verified |
-| `novel-trading-ideas.md` | Vol I — 225 brainstormed ideas, judge-scored |
-| `unorthodox-data-points-vol2.md` | Vol II — 107 market-forensics sources (short interest, synthetic shares, filings) |
-| `novel-trading-ideas-vol2.md` | Vol II — 218 ideas (8 removed for MNPI/embargo-bypass concerns) |
-| `ftd-deep-dive.md` | FTD mechanics, evidence, 12 strategies, backtest design; every citation fact-checked |
-| `ftd-empirical-findings.md` | **Empirical study of the 27.5M-row FTD panel** (recalibrated) |
-| `data/ftd/` | Full SEC FTD archive 2004–2026 (425 files) + fetch/build/analyze scripts |
-| `data/referee/` | Brainstorm-referee swarm raw results (this session) |
+| **The 855R Census** | Privia's guided KPI ("Implemented Providers") has a *regulatory filing* as its atomic unit; CMS republishes the roster monthly at NPI granularity. Claims panels **cannot see a departure** — same doctors, same patients, same claims, only the billing affiliation breaks. ~7 years of point-in-time snapshots = backtestable. |
+| **The Sætre Print** | Norway publishes establishment-level headcount monthly (pulled live: 277 at Chemring Nobel). Batch nitration scales by certified crews, so headcount is a *binding precondition*, not coincident. LinkedIn-based vendors are blind to unionised blue-collar Norwegian operators. |
+| **The Silenced Curva** | Disciplinary dockets publish *which stadium sector* closes, weeks–months ahead. Effect is **acoustic not headcount** (a curva is ~6% of seats, ~60–80% of noise). COVID ghost games measured it: home fouls +26%, away +3%. UEFA sanctions carry to an undrawn fixture = 3–6 month lead. |
+| **The Phantom Operating Day** | Attendance = operating days × attendance/day. The whole industry sells the *numerator* (crowd panels) badly; nobody reconstructs the *denominator* the company literally prints. Unbackfillable — calendars overwrite, so no vendor can sell history. |
+| **The Roe Window** | Iceland's ITQ landing tape publishes tonnage **and processing form** within days; the same capelin tonne is ~$500 as meal vs ~$2,500 as roe, and the roe window is ~5 weeks. ~9-week lead on the print. |
+| **The 240-Day Shell** | Investor-state arbitration is barred from national courts, so it appears in no docket product. ICSID's procedural log + Rule 58(1) converts an undated binary into a **computable award deadline** on nano-caps. |
+| **The Plaintext Tail** | 2024–25 aircraft privacy rules blinded every commercial tracker, but ARINC-618 puts the real tail number in **plaintext** in ACARS. Edge *widens* as more owners enroll in privacy programs. |
+| **The Spielbericht / Sixth Rubber** | Ranked pros play club-league matches absent from all official ATP/WTA records, so "days since last match" is simply wrong. The injury tape (named on a team sheet, then not fielded) leads tour withdrawal by 1–4 days. |
 
-### Key empirical result (FTD)
+### Archetypes that keep producing
 
-**Chronic-Fail Decay** — cheap stocks failing on most trading days for 6+ months subsequently bleed.
-Calibrated definition: `chronic = >=80 fail-days in trailing 180d`, `occasional = <=20`.
-
-- Price gradient: −3.03% (<$1) → −1.98% ($1–2) → −1.11% ($3–5) → ~0 by $10, monotonic
-- Dose-response monotonic: −0.70% (21–40 fail-days) → −1.82% (101–126)
-- **Within-name test:** −1.19%, 60.6% of names worse during their own chronic spells
-- Negative in 16/17 years; does NOT decay with fail notional
-- **Cost hurdle:** breakeven annualized borrow fee only 25–55% — same order as actual HTB fees
-- Distribution: 58% down, median −1.08%, but MEAN +1.56% (3.96% squeeze >+25%)
-
-**Verdict:** high confidence as a zero-cost *screening filter* (don't go long cheap chronic failers);
-probably not viable as an outright short (borrow eats it, fat tail kills equal-weight);
-**unresolved** as a defined-risk put trade — needs options/IV data not in the FTD file.
-
-### Brainstorm referee swarm — completed, result is decisive
-
-Pointed 28 agents at the top 40 of the 443 brainstormed ideas (funnel: triage → referee → red team → playbook).
-
-**Outcome: 38 of 40 killed at triage. Both survivors then failed the referee.**
-- `Call Report Amendment Autopsy` → **NO-EDGE** (measured gross edge on the exact event ≈ 0.00%)
-- `Dividend Clock Slip` → **LIKELY-ILLUSORY** (negative net for equities, decisively negative for options)
-
-Representative kill reasoning (well-researched, not hand-waving):
-- *Pawn Forfeiture Flow Meter* — online catalog is ~9% of EZCORP sales and growing 21% YoY on an
-  e-commerce push, so the scraper reads digital buildout as consumer distress; redemption rate has
-  been inert at 76–77% across regimes; forfeited gold goes to the smelter and never lists.
-- *Screwworm Bulletin Watch* — APHIS press-releases Mexican confirmations itself and consumes the same
-  SENASICA dashboard, so there is no Spanish-language lead; regime also inverted (ports reopening
-  Aug 2026); and feeder cattle lock limit-up exactly when the headline matters, so the fill doesn't exist.
-- *Lock Queue* — real data, but the convexity lives in barge freight and interior cash basis, which a
-  small trader cannot trade; CBOT flat price barely moves because global S&D is unchanged.
-
-Raw results: `data/referee/brainstorm-referee-results.json`; workflow: `brainstorm_referee_workflow.js`.
+Rotate new batches through these — they have the highest hit rate:
+1. **Off-record activity** official databases exclude by definition
+2. **Structural exclusions** routing a sector's data outside the standard institutional tool (No-PACER, ICSID)
+3. **Own-sensor capture** of waste/exhaust signals (Ad Council Minute, Embargoed Sounding, Plaintext Tail)
+4. **Administrative dockets** that pre-announce a physical change (Silenced Curva, Beaching Ratio)
+5. **Reconstruct the exact disclosed metric**, especially the ignored denominator
+6. **Registries where joining *and leaving* are mandatory filings** — transaction panels can't see exits
+7. **Compulsory foreign labor/social-insurance registries** as facility-level capacity panels
 
 ## In flight when paused
 
-- **FTD edge/execution swarm** (task `wgzso4dno`, 26 agents: 12 referee → 8 execution → 4 red-team → playbook)
-  was still running. Its output covers borrow-fee reality, options/IV execution on low-priced names,
-  sizing for negative-skew books, venues, costs, compliance, and monitoring — the material needed to
-  settle the open "defined-risk put" question above. **Check whether it finished; if the container was
-  reclaimed it will need relaunching.**
+Two discovery workflows were running; their results are **not yet in the ledger**:
+- `wj9c3pbxl` — blue-collar workforce, single-site chokepoints, binding preconditions, gone-dark detection, statutory subsidiary accounts, training pipelines, non-English official data, industrial utility contracts, insurance-as-capacity-gate, export-control flows
+- `wfgxh7y2m` — affiliation registries, churn invisible in transaction data, KPI atomic units, panel blind spots, network rosters, licence transfers, regulated identifiers, mandatory directories, contract registries, negative-side signals
 
-## Suggested next steps
+**To bank them if the notifications arrive:**
+```bash
+cd /tmp/claude-0/-home-user-WireAntennaGain/<session>/scratchpad
+python3 append_batch.py ../tasks/<taskid>.output ""     # "" = nothing dropped
+cd /home/user/WireAntennaGain && git add research/edge-ledger.md && git commit && git push
+```
+`append_batch.py` handles numbering, the ledger format, and the running ban list. If the container was reclaimed, just relaunch those domain sets — nothing is lost but time.
 
-1. Recover or relaunch the FTD edge/execution swarm; integrate with the empirical numbers above.
-2. Write the combined "what actually has an edge" report — the honest through-line is now:
-   **hundreds of brainstormed ideas produced ~zero validated edges; the one surviving signal is a
-   free screening filter, not a trade.** That is a genuinely useful conclusion.
-3. Optional: settle the defined-risk put question with real options data (IV vs realized drift on
-   chronic names) — the single highest-value open empirical test.
+## To restart discovery
+
+```
+/loop discover 6 NEW underutilized data sources that are predictive of future market or gambling outcomes — in the spirit of jockey weights, satellite parking-lot counts, Google Trends, presidential tweets, weather vs commodities. Cover BOTH financial markets and betting markets. For each: name the exact data source and how to collect it, the specific bet or trade it implies, the causal mechanism, who's on the other side, and a rough +EV estimate with confidence. Append each to research/edge-ledger.md and NEVER repeat a source already in that ledger.
+```
+Run 2–4 workflows of 10–14 domains concurrently (domains partitioned so concurrent batches can't collide), append + commit + relaunch in one turn to keep the pipeline saturated.
+
+## Prior work (all committed)
+
+`edge-hunt-conclusion.md` (the ~760-candidate program that returned zero fundable strategies), `success-case-library.md` (60 documented winners), `candidates-100-screened.md`, `ftd-deep-dive.md`, `ftd-empirical-findings.md` (a real pattern worth ~3¢/share — inside the tick), and `data/ftd/` (the full 27.5M-row SEC fails-to-deliver archive with tooling).
+
+**Note the contrast worth remembering:** the earlier program *validated* ideas to destruction and returned zero. The ledger *generates* and documents, and is at 135. Validation and discovery are different jobs — don't let the referee framework eat the generator.
